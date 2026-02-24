@@ -4,84 +4,86 @@ GO
 USE TicketDB;
 GO
 
--- Roles
-CREATE TABLE Roles (
-    Id      INT PRIMARY KEY IDENTITY(1,1),
-    Name    NVARCHAR(50) NOT NULL,
-    CONSTRAINT UQ_Roles_Name UNIQUE (Name),
-    CONSTRAINT CK_Roles_Name CHECK (Name IN ('MANAGER', 'SUPPORT', 'USER'))
+-- roles
+create table roles (
+    Id int primary key identity(1,1),
+    Name nvarchar(50) not null,
+    constraint uq_roles_name unique (name),
+    constraint ck_roles_name check (name in ('MANAGER', 'SUPPORT', 'USER'))
 );
-GO
+go
 
--- Users
-CREATE TABLE Users (
-    Id           INT PRIMARY KEY IDENTITY(1,1),
-    Name         NVARCHAR(255) NOT NULL,
-    Email        NVARCHAR(255) NOT NULL,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    RoleId       INT NOT NULL,
-    CreatedAt    DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT UQ_Users_Email UNIQUE (Email),
-    CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES Roles(Id)
+-- users
+create table users (
+    Id int primary key identity(1,1),
+    Name nvarchar(255) not null,
+    Email nvarchar(255) not null,
+    PasswordHash nvarchar(255) not null,
+    RoleId int not null,
+    CreatedAt datetime2 not null default sysdatetime(),
+    constraint uq_users_email unique (email),
+    constraint fk_users_roles foreign key (RoleId) references roles(Id)
 );
-GO
+go
 
--- Tickets
-CREATE TABLE Tickets (
-    Id          INT PRIMARY KEY IDENTITY(1,1),
-    Title       NVARCHAR(255) NOT NULL,
-    Description NVARCHAR(MAX) NOT NULL,
-    Status      NVARCHAR(20) NOT NULL DEFAULT 'OPEN',
-    Priority    NVARCHAR(10) NOT NULL DEFAULT 'MEDIUM',
-    CreatedBy   INT NOT NULL,
-    AssignedTo  INT NULL,
-    CreatedAt   DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT CK_Tickets_Status CHECK (Status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
-    CONSTRAINT CK_Tickets_Priority CHECK (Priority IN ('LOW', 'MEDIUM', 'HIGH')),
-    CONSTRAINT FK_Tickets_CreatedBy FOREIGN KEY (CreatedBy) REFERENCES Users(Id),
-    CONSTRAINT FK_Tickets_AssignedTo FOREIGN KEY (AssignedTo) REFERENCES Users(Id)
+-- tickets
+create table tickets (
+    Id int primary key identity(1,1),
+    Title nvarchar(255) not null,
+    Description nvarchar(max) not null,
+    Status nvarchar(20) not null default 'OPEN',
+    Priority nvarchar(10) not null default 'MEDIUM',
+    CreatedBy int not null,
+    AssignedTo int null,
+    CreatedAt datetime2 not null default sysdatetime(),
+    constraint ck_tickets_status check (status in ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
+    constraint ck_tickets_priority check (priority in ('LOW', 'MEDIUM', 'HIGH')),
+    constraint fk_tickets_createdby foreign key (CreatedBy) references users(Id),
+    constraint fk_tickets_assignedto foreign key (AssignedTo) references users(Id)
 );
-GO
+go
 
--- TicketComments
-CREATE TABLE TicketComments (
-    Id        INT PRIMARY KEY IDENTITY(1,1),
-    TicketId  INT NOT NULL,
-    UserId    INT NOT NULL,
-    Comment   NVARCHAR(MAX) NOT NULL,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_TicketComments_Tickets FOREIGN KEY (TicketId) REFERENCES Tickets(Id) ON DELETE CASCADE,
-    CONSTRAINT FK_TicketComments_Users FOREIGN KEY (UserId) REFERENCES Users(Id)
+-- ticketcomments
+create table ticketcomments (
+    Id int primary key identity(1,1),
+    TicketId int not null,
+    UserId int not null,
+    Comment nvarchar(max) not null,
+    CreatedAt datetime2 not null default sysdatetime(),
+    constraint fk_ticketcomments_tickets foreign key (TicketId) references tickets(Id) on delete cascade,
+    constraint fk_ticketcomments_users foreign key (UserId) references users(Id)
 );
-GO
+go
 
--- TicketStatusLogs
-CREATE TABLE TicketStatusLogs (
-    Id         INT PRIMARY KEY IDENTITY(1,1),
-    TicketId   INT NOT NULL,
-    OldStatus  NVARCHAR(20) NOT NULL,
-    NewStatus  NVARCHAR(20) NOT NULL,
-    ChangedBy  INT NOT NULL,
-    ChangedAt  DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT CK_TicketStatusLogs_OldStatus CHECK (OldStatus IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
-    CONSTRAINT CK_TicketStatusLogs_NewStatus CHECK (NewStatus IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
-    CONSTRAINT FK_TicketStatusLogs_Tickets FOREIGN KEY (TicketId) REFERENCES Tickets(Id) ON DELETE CASCADE,
-    CONSTRAINT FK_TicketStatusLogs_Users FOREIGN KEY (ChangedBy) REFERENCES Users(Id)
+-- ticketstatuslogs
+create table ticketstatuslogs (
+    Id int primary key identity(1,1),
+    TicketId int not null,
+    OldStatus nvarchar(20) not null,
+    NewStatus nvarchar(20) not null,
+    ChangedBy int not null,
+    ChangedAt datetime2 not null default sysdatetime(),
+    constraint ck_ticketstatuslogs_oldstatus check (OldStatus in ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
+    constraint ck_ticketstatuslogs_newstatus check (NewStatus in ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
+    constraint fk_ticketstatuslogs_tickets foreign key (TicketId) references tickets(Id) on delete cascade,
+    constraint fk_ticketstatuslogs_users foreign key (ChangedBy) references users(Id)
 );
-GO
+go
+
 
 -- insert
-INSERT INTO Roles VALUES ('MANAGER'),('SUPPORT'),('USER');
-GO
+insert into roles values ('MANAGER'),('SUPPORT'),('USER');
+go
 
-INSERT INTO Users (Name, Email, PasswordHash, RoleId)
-VALUES (
+insert into users (name, email, passwordhash, roleid)
+values (
     'Admin Manager',
     'manager@company.com',
     '$2a$11$GCwPm5IknRJki4xZ0Ue3COEM0si7mSVXgB0Q/lXeGUA8ibAo7K2zq',
     1
 );
-GO
-SELECT * FROM Roles;
-SELECT * FROM Users;
-GO
+go
+
+select * from roles;
+select * from users;
+go
