@@ -78,8 +78,8 @@ go
 insert into users (name, email, passwordhash, roleid)
 values (
     'Admin Manager',
-    'manager@company.com',
-    '$2a$11$GCwPm5IknRJki4xZ0Ue3COEM0si7mSVXgB0Q/lXeGUA8ibAo7K2zq',
+    'manager@example.com',
+    '$2a$11$GCwPm5IknRJki4xZ0Ue3COEM0si7mSVXgB0Q/lXeGUA8ibAo7K2zq', --Manager@123
     1
 );
 go
